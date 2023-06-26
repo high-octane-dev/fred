@@ -42,9 +42,7 @@ pub fn from_offset(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     let mut inner_fn_type: syn::TypeBareFn = parse_quote!(extern "C" fn());
 
-    if let Some(calling_convention) = get_calling_convention(&fn_sig.attrs) {
-        inner_fn_type.abi = syn::parse_str(&calling_convention).unwrap();
-    }
+    inner_fn_type.abi = fn_sig.sig.abi.clone();
 
     inner_fn_type.output = fn_sig.sig.output.clone();
     inner_fn_type.variadic = fn_sig.sig.variadic.clone();
@@ -68,31 +66,4 @@ pub fn from_offset(attr: TokenStream, input: TokenStream) -> TokenStream {
         }
     )
     .into()
-}
-
-fn get_calling_convention(attrs: &[syn::Attribute]) -> Option<String> {
-    for attr in attrs {
-        if let Some(calling_convention) = get_calling_convention_from_attr(attr) {
-            return Some(calling_convention);
-        }
-    }
-    None
-}
-
-fn get_calling_convention_from_attr(attr: &syn::Attribute) -> Option<String> {
-    if attr.path.is_ident("cdecl") {
-        Some("cdecl".to_string())
-    } else if attr.path.is_ident("clrcall") {
-        Some("clrcall".to_string())
-    } else if attr.path.is_ident("stdcall") {
-        Some("stdcall".to_string())
-    } else if attr.path.is_ident("fastcall") {
-        Some("fastcall".to_string())
-    } else if attr.path.is_ident("thiscall") {
-        Some("thiscall".to_string())
-    } else if attr.path.is_ident("vectorcall") {
-        Some("vectorcall".to_string())
-    } else {
-        None
-    }
 }
