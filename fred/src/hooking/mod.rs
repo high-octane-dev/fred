@@ -60,7 +60,7 @@ pub struct InlineCtx {
     pub eax: Register,
 }
 
-type CallbackFuncPtr = extern "cdecl" fn(InlineCtx);
+type CallbackFuncPtr = extern "cdecl" fn(&mut InlineCtx);
 
 #[derive(Debug)]
 pub enum InlineHookErr {
@@ -78,22 +78,24 @@ pub unsafe fn inline_hook(ptr: usize, callback: CallbackFuncPtr) -> Result<(), I
     if original_code_len < 5 {
         Err(InlineHookErr::InvalidCodeSize)
     } else {
-        let jit_area = crate::win::allocate_code::<u8>(9 + padded_code_len + 5);
+        let jit_area = crate::win::allocate_code::<u8>(11 + padded_code_len + 5);
         // Build inline handler.
         jit_area[0] = 0x60; // pushad
         jit_area[1] = 0x9C; // pushfd
-        write_call(jit_area.as_mut_ptr().offset(2), callback as *mut u8).unwrap(); // call callback
-        jit_area[7] = 0x9D; // popfd
-        jit_area[8] = 0x61; // popad
+        jit_area[2] = 0x54; // push esp
+        write_call(jit_area.as_mut_ptr().offset(3), callback as *mut u8).unwrap(); // call callback
+        jit_area[8] = 0x58; // pop eax (We don't actually need to use EAX later, its just that a ``pop eax`` takes fewer bytes than a ``add esp, 4``.)
+        jit_area[9] = 0x9D; // popfd
+        jit_area[10] = 0x61; // popad
 
         // Attempt to build/relocate the code, and if successful, copy into the trampoline.
         match relocate_code(
             ptr as usize,
             original_code_len,
-            jit_area.as_ptr().offset(9) as usize,
+            jit_area.as_ptr().offset(11) as usize,
         ) {
             Ok(relocated) => {
-                jit_area[9..9 + relocated.len()].copy_from_slice(&relocated);
+                jit_area[11..11 + relocated.len()].copy_from_slice(&relocated);
 
                 let old_perm = crate::win::set_permission(
                     ptr as *mut u8,
@@ -104,7 +106,7 @@ pub unsafe fn inline_hook(ptr: usize, callback: CallbackFuncPtr) -> Result<(), I
 
                 // Insert jmp from the inline handler back to the original function.
                 write_jmp(
-                    jit_area.as_mut_ptr().offset((9 + relocated.len()) as isize),
+                    jit_area.as_mut_ptr().offset((11 + relocated.len()) as isize),
                     (ptr + 5) as *mut u8,
                 )
                 .unwrap();

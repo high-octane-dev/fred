@@ -90,7 +90,7 @@ unsafe extern "thiscall" fn load_file_by_path(
 unsafe extern "thiscall" fn mount_pak_file(_this: *mut PakSystem, _path: *const i8) {}
 
 // Hooks the function responsible for freeing LoadedFiles so our FileInfos get properly free'd.
-extern "cdecl" fn free_dummy_file_info(ctx: InlineCtx) {
+extern "cdecl" fn free_dummy_file_info(ctx: &mut InlineCtx) {
     unsafe {
         let loaded_file = ctx.edi.pointer as *mut LoadedFile;
         operator_delete((*loaded_file).file_info as *mut c_void);
