@@ -1,5 +1,3 @@
-use std::ffi::c_void;
-
 use winapi::um::processthreadsapi::GetCurrentThread;
 
 use crate::hooking::detail::relocate_code;
@@ -130,9 +128,9 @@ pub unsafe fn inline_hook(ptr: usize, callback: CallbackFuncPtr) -> Result<(), I
     }
 }
 
-pub unsafe fn replace_hook<T>(ptr: *mut *mut T, callback: *mut T) {
+pub unsafe fn replace_hook<F>(ptr: &mut F, callback: *const ()) {
     detours_sys::DetourTransactionBegin();
     detours_sys::DetourUpdateThread(GetCurrentThread() as _);
-    detours_sys::DetourAttach(ptr as *mut *mut c_void, callback as *mut c_void);
+    detours_sys::DetourAttach(std::mem::transmute(ptr), std::mem::transmute(callback));
     detours_sys::DetourTransactionCommit();
 }
