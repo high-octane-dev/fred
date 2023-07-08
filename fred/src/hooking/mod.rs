@@ -28,7 +28,7 @@ pub unsafe fn write_call(src: *mut u8, dst: *mut u8) -> Option<()> {
 
 pub unsafe fn write_push(src: *mut u8, dst: u32) -> Option<()> {
     crate::win::set_permission(src, 5, crate::win::Perm::ExecuteReadWrite)?;
-    *src = 0xE8;
+    *src = 0x68;
     *(src.add(1) as *mut u32) = dst;
     Some(())
 }

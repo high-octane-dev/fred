@@ -22,6 +22,7 @@ extern "stdcall" fn DllMain(_h_inst_dll: HINSTANCE, fdw_reason: DWORD, _lpv_rese
         logging::init();
         patches::fs::init();
         // patches::widescreen::init();
+        patches::fps::init();
         if let Ok(entries) = std::fs::read_dir("./plugins/") {
             for entry in entries {
                 if let Ok(entry) = entry {
