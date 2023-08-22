@@ -1,3 +1,3 @@
+pub mod fps;
 pub mod fs;
 pub mod widescreen;
-pub mod fps;

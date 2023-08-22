@@ -5,19 +5,14 @@
 
 use std::ffi::*;
 
-mod hooking;
 mod logging;
 mod offsets;
 mod patches;
-mod win;
 
-use winapi::{
-    shared::minwindef::{DWORD, HINSTANCE},
-    um::{winnt::DLL_PROCESS_ATTACH, libloaderapi::LoadLibraryA},
-};
+use windows_sys::Win32::System::{LibraryLoader::LoadLibraryA, SystemServices::DLL_PROCESS_ATTACH};
 
 #[no_mangle]
-extern "stdcall" fn DllMain(_h_inst_dll: HINSTANCE, fdw_reason: DWORD, _lpv_reserved: *mut c_void) {
+extern "stdcall" fn DllMain(_h_inst_dll: u32, fdw_reason: u32, _lpv_reserved: *mut c_void) {
     if fdw_reason == DLL_PROCESS_ATTACH {
         logging::init();
         patches::fs::init();
@@ -31,8 +26,11 @@ extern "stdcall" fn DllMain(_h_inst_dll: HINSTANCE, fdw_reason: DWORD, _lpv_rese
                         if let Some(extension) = path.extension() {
                             if extension.to_str().unwrap() == "dll" {
                                 let c_str = std::ffi::CString::new(path.to_str().unwrap()).unwrap();
-                                println!("[fred::DllMain] loading plugin: {}...", path.file_name().unwrap().to_str().unwrap());
-                                unsafe { LoadLibraryA(c_str.as_ptr()) };
+                                println!(
+                                    "[fred::DllMain] loading plugin: {}...",
+                                    path.file_name().unwrap().to_str().unwrap()
+                                );
+                                unsafe { LoadLibraryA(c_str.as_ptr() as *const u8) };
                             }
                         }
                     }

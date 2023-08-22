@@ -1,8 +1,8 @@
 use std::os::{raw::c_void, windows::prelude::MetadataExt};
 
-use winapi::um::minwinbase::CRITICAL_SECTION;
-
-use crate::{hooking::*, offsets::*};
+use crate::offsets::*;
+use sunset::*;
+use windows_sys::Win32::System::Threading::RTL_CRITICAL_SECTION;
 
 #[repr(packed)]
 pub struct FileInfo {
@@ -32,7 +32,7 @@ pub struct PakSystem {
     pub loaded_paks: *mut LoadedPak,
     pub pak_count: u32,
     pub unk: u32,
-    pub lock: CRITICAL_SECTION,
+    pub lock: RTL_CRITICAL_SECTION,
 }
 
 // Used to ensure that the game can access a LoadedPak's file_data_start_offset from a LoadedFile.

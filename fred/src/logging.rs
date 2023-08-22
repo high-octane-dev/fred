@@ -1,6 +1,6 @@
 use libc_stdhandle::stdout;
 use once_cell::sync::Lazy;
-use winapi::um::{consoleapi::AllocConsole, wincon::SetConsoleTitleA};
+use windows_sys::Win32::System::Console::{AllocConsole, SetConsoleTitleA};
 
 static mut GLOBAL_CONSOLE: Lazy<Console> = Lazy::new(|| Console::new());
 
@@ -35,6 +35,6 @@ pub fn init() {
     Lazy::<Console>::force(unsafe { &GLOBAL_CONSOLE });
     unsafe {
         let console_title = std::ffi::CString::new("Fred Console").unwrap();
-        SetConsoleTitleA(console_title.as_ptr());
+        SetConsoleTitleA(console_title.as_ptr() as *const u8);
     }
 }

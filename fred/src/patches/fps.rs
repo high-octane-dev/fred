@@ -1,4 +1,4 @@
-use crate::hooking::write_push;
+use sunset::write_push;
 
 pub fn init() {
     unsafe {
