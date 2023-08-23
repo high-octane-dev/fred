@@ -1,2 +1,2 @@
 [workspace]
-members = ["fred", "fred-launcher", "fred-macro"]
+members = ["fred", "fred-launcher"]

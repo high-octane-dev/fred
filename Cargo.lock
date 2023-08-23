@@ -97,7 +97,6 @@ name = "fred"
 version = "0.3.0"
 dependencies = [
  "detours-sys",
- "fred-macro",
  "libc",
  "libc-stdhandle",
  "once_cell",
@@ -111,15 +110,6 @@ name = "fred-launcher"
 version = "0.1.0"
 dependencies = [
  "windows-sys",
-]
-
-[[package]]
-name = "fred-macro"
-version = "0.1.1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -254,12 +244,23 @@ checksum = "43b2853a4d09f215c24cc5489c992ce46052d359b5109343cbafbf26bc62f8a3"
 [[package]]
 name = "sunset"
 version = "0.1.0"
-source = "git+https://github.com/itsmeft24/sunset#8c3b639e9dee853dcd6c260072ec9100eba5ec86"
+source = "git+https://github.com/itsmeft24/sunset#ebef12c4c339fcc06cc336f47f84ed1ca1e7a9af"
 dependencies = [
  "detours-sys",
  "once_cell",
+ "sunset-macro",
  "windows-sys",
  "zydis",
+]
+
+[[package]]
+name = "sunset-macro"
+version = "0.1.0"
+source = "git+https://github.com/itsmeft24/sunset#ebef12c4c339fcc06cc336f47f84ed1ca1e7a9af"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

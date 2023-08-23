@@ -1,6 +1,7 @@
 use std::os::{raw::c_void, windows::prelude::MetadataExt};
 
 use crate::offsets::*;
+use sunset::{hook, install_hooks};
 use sunset::*;
 use windows_sys::Win32::System::Threading::RTL_CRITICAL_SECTION;
 
@@ -44,6 +45,7 @@ static DUMMY_LOADED_PAK: LoadedPak = LoadedPak {
     file_data_start_offset: 0,
 };
 
+#[hook(offset = 0x00687d90)]
 unsafe extern "thiscall" fn load_file_by_path(
     _this: *mut PakSystem,
     path: *const i8,
@@ -87,36 +89,18 @@ unsafe extern "thiscall" fn load_file_by_path(
 }
 
 // Stubs the function responsible for mounting Pak files so they are no longer necessary.
-unsafe extern "thiscall" fn mount_pak_file(_this: *mut PakSystem, _path: *const i8) {}
+#[hook(offset = 0x00687a60)]
+pub extern "thiscall" fn mount_pak_file(_this: *mut PakSystem, _path: *const i8) {}
 
 // Hooks the function responsible for freeing LoadedFiles so our FileInfos get properly free'd.
-extern "cdecl" fn free_dummy_file_info(ctx: &mut InlineCtx) {
+#[hook(offset = 0x00687f09, inline)]
+pub fn free_dummy_file_info(ctx: &mut InlineCtx) {
     unsafe {
         let loaded_file = ctx.edi.pointer as *mut LoadedFile;
         operator_delete((*loaded_file).file_info as *mut c_void);
     }
 }
 
-static mut LOAD_FILE_BY_PATH_FUNC_PTR: *mut extern "thiscall" fn(
-    *mut PakSystem,
-    *const i8,
-    u32,
-) -> *mut LoadedFile = unsafe {
-    std::mem::transmute::<
-        _,
-        *mut extern "thiscall" fn(*mut PakSystem, *const i8, u32) -> *mut LoadedFile,
-    >(0x00687d90 as *const ())
-};
-static mut MOUNT_PAK_FILE_FUNC_PTR: *mut extern "thiscall" fn(*mut PakSystem, *const i8) = unsafe {
-    std::mem::transmute::<_, *mut extern "thiscall" fn(*mut PakSystem, *const i8)>(
-        0x00687a60 as *const (),
-    )
-};
-
 pub fn init() {
-    unsafe {
-        replace_hook(&mut LOAD_FILE_BY_PATH_FUNC_PTR, load_file_by_path as _);
-        replace_hook(&mut MOUNT_PAK_FILE_FUNC_PTR, mount_pak_file as _);
-        inline_hook(0x00687f09, free_dummy_file_info).unwrap();
-    }
+    install_hooks!(load_file_by_path, mount_pak_file, free_dummy_file_info);
 }

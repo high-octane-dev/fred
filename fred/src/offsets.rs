@@ -1,4 +1,4 @@
-use fred_macro::*;
+use sunset::*;
 use std::ffi::*;
 
 #[from_offset(0x0068b173)]
